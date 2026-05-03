@@ -587,4 +587,253 @@ RULES: List[Rule] = [
             "entrepreneurship": -3.0,
         },
     ),
+
+    # ---- Extended skill rules ----
+    Rule(
+        id="frontend_depth",
+        description="Frontend / web depth supports SWE and overlaps with UX work.",
+        condition=any_skill("frontend", "react", "css", min_level=3),
+        effects={
+            "software_engineering": 1.5,
+            "ux_design": 1.0,
+        },
+    ),
+    Rule(
+        id="backend_depth",
+        description="Backend / databases / distributed systems depth signals server-side SWE.",
+        condition=any_skill("backend", "databases", "distributed_systems", "sql", min_level=3),
+        effects={
+            "software_engineering": 1.5,
+            "devops_sre": 2.0,
+            "ml_engineering": 1.0,
+            "data_science": 1.0,
+        },
+    ),
+    Rule(
+        id="mobile_dev",
+        description="Mobile development experience supports product-engineering roles.",
+        condition=any_skill("ios", "android", "mobile", min_level=3),
+        effects={
+            "software_engineering": 2.0,
+            "entrepreneurship": 0.5,
+        },
+    ),
+    Rule(
+        id="public_speaking",
+        description="Strong public speaking ability is high-leverage in client-facing roles.",
+        condition=any_skill("public_speaking", min_level=4),
+        effects={
+            "consulting": 2.0,
+            "product_management": 1.5,
+            "entrepreneurship": 1.5,
+            "research_academic": 0.5,
+        },
+    ),
+    Rule(
+        id="sales_skills",
+        description="Sales / persuasion ability matters disproportionately for founders.",
+        condition=any_skill("sales", "persuasion", min_level=3),
+        effects={
+            "entrepreneurship": 2.5,
+            "consulting": 1.5,
+            "product_management": 1.0,
+        },
+    ),
+    Rule(
+        id="creativity",
+        description="Creativity / design thinking supports user-centered and ambiguous roles.",
+        condition=any_skill("creativity", "design_thinking", min_level=3),
+        effects={
+            "ux_design": 2.0,
+            "product_management": 1.0,
+            "entrepreneurship": 1.0,
+        },
+    ),
+    Rule(
+        id="teaching_skills",
+        description="Teaching / mentoring strength signals fit for academic and people-leader paths.",
+        condition=any_skill("teaching", "mentoring", min_level=3),
+        effects={
+            "research_academic": 2.0,
+            "technical_program_management": 1.0,
+            "product_management": 0.5,
+        },
+    ),
+    Rule(
+        id="theoretical_depth",
+        description="Mathematical maturity plus theoretical interest signals research-track fit.",
+        condition=all_skills("math", "linear_algebra", min_level=4),
+        effects={
+            "research_academic": 2.0,
+            "research_industry": 1.5,
+            "finance_quant": 1.5,
+        },
+    ),
+
+    # ---- Extended interest rules ----
+    Rule(
+        id="interest_open_source",
+        description="Open-source involvement is a strong positive signal for SWE roles.",
+        condition=has_interest("open_source", "oss"),
+        effects={
+            "software_engineering": 2.0,
+            "devops_sre": 1.0,
+            "ml_engineering": 0.5,
+        },
+    ),
+    Rule(
+        id="interest_infrastructure",
+        description="Interest in scale / infrastructure points to platform engineering.",
+        condition=has_interest("infrastructure", "scale", "distributed_systems"),
+        effects={
+            "devops_sre": 2.5,
+            "software_engineering": 1.0,
+            "ml_engineering": 1.0,
+        },
+    ),
+    Rule(
+        id="interest_llms",
+        description="Interest in LLMs / generative AI points to ML and applied research roles.",
+        condition=has_interest("llms", "generative_ai", "nlp"),
+        effects={
+            "ml_engineering": 2.5,
+            "research_industry": 1.5,
+            "data_science": 1.0,
+        },
+    ),
+    Rule(
+        id="interest_healthcare",
+        description="Interest in healthcare / biotech often routes through research and DS roles.",
+        condition=has_interest("healthcare", "biotech", "medicine"),
+        effects={
+            "research_industry": 1.5,
+            "data_science": 1.5,
+            "research_academic": 1.0,
+        },
+    ),
+    Rule(
+        id="interest_climate",
+        description="Mission-driven interest in climate / sustainability favors founder and research paths.",
+        condition=has_interest("climate", "sustainability", "energy"),
+        effects={
+            "entrepreneurship": 1.5,
+            "research_industry": 1.5,
+            "research_academic": 1.0,
+        },
+    ),
+    Rule(
+        id="interest_education",
+        description="Interest in education / teaching aligns with academic and PM-for-edtech paths.",
+        condition=has_interest("education", "edtech", "teaching"),
+        effects={
+            "research_academic": 2.0,
+            "product_management": 1.0,
+        },
+    ),
+    Rule(
+        id="interest_gaming",
+        description="Interest in games supports SWE and creative engineering roles.",
+        condition=has_interest("gaming", "games", "game_dev"),
+        effects={
+            "software_engineering": 2.0,
+            "ux_design": 0.5,
+            "entrepreneurship": 0.5,
+        },
+    ),
+    Rule(
+        id="interest_privacy_ethics",
+        description="Interest in privacy / ethics supports security and governance-leaning paths.",
+        condition=has_interest("privacy", "ethics", "policy"),
+        effects={
+            "cybersecurity": 1.5,
+            "research_academic": 1.0,
+            "product_management": 0.5,
+        },
+    ),
+
+    # ---- Extended work-style rules ----
+    Rule(
+        id="style_structured",
+        description="Preference for structured / process-driven work fits big-co and finance environments.",
+        condition=has_work_style("structured"),
+        effects={
+            "finance_quant": 1.0,
+            "research_academic": 0.5,
+            "consulting": 0.5,
+            "technical_program_management": 1.0,
+        },
+    ),
+    Rule(
+        id="style_low_people",
+        description="Preference for individual contributor / low-meeting work disfavors heavily client-facing roles.",
+        condition=has_work_style("introverted", "ic_focused"),
+        effects={
+            "research_academic": 1.5,
+            "research_industry": 1.0,
+            "software_engineering": 1.0,
+            "consulting": -1.5,
+            "product_management": -1.0,
+        },
+    ),
+
+    # ---- Extended goal rules ----
+    Rule(
+        id="goal_remote",
+        description="Wanting remote-friendly work conflicts with travel-heavy consulting paths.",
+        condition=goal_mentions("remote", "work from home", "wfh"),
+        effects={
+            "software_engineering": 1.0,
+            "data_science": 1.0,
+            "consulting": -1.5,
+        },
+    ),
+    Rule(
+        id="goal_teach",
+        description="Wanting to teach / mentor aligns with academic paths.",
+        condition=goal_mentions("teach", "mentor", "professor"),
+        effects={
+            "research_academic": 2.0,
+            "technical_program_management": 0.5,
+        },
+    ),
+    Rule(
+        id="goal_grad_school",
+        description="Wanting graduate school favors research-track positioning.",
+        condition=goal_mentions("graduate school", "grad school", "masters"),
+        effects={
+            "research_academic": 1.5,
+            "research_industry": 1.0,
+        },
+    ),
+
+    # ---- Combined / compound rules ----
+    Rule(
+        id="leadership_plus_technical",
+        description="Demonstrated leadership combined with strong technical skills is high-leverage for TPM and founder roles.",
+        condition=all_skills("leadership", "python", min_level=3),
+        effects={
+            "technical_program_management": 2.5,
+            "entrepreneurship": 1.5,
+            "product_management": 1.0,
+        },
+    ),
+    Rule(
+        id="design_plus_technical",
+        description="Design ability combined with technical skill is rare and valuable for design engineering.",
+        condition=all_skills("design_visual", "python", min_level=3),
+        effects={
+            "ux_design": 1.5,
+            "software_engineering": 1.0,
+            "entrepreneurship": 1.0,
+        },
+    ),
+    Rule(
+        id="ml_plus_systems",
+        description="ML expertise combined with systems skills is exactly the ML-engineering profile.",
+        condition=all_skills("machine_learning", "system_design", min_level=3),
+        effects={
+            "ml_engineering": 2.5,
+            "research_industry": 1.0,
+        },
+    ),
 ]

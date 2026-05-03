@@ -43,6 +43,14 @@ HYBRID_ROLES = {
         "Applied research engineer",
     frozenset(["consulting", "technical_program_management"]):
         "Tech-strategy consulting / transformation lead",
+    frozenset(["ml_engineering", "entrepreneurship"]):
+        "Founding ML engineer at an early-stage AI startup",
+    frozenset(["ml_engineering", "data_science"]):
+        "Applied ML / data scientist on a product team",
+    frozenset(["devops_sre", "software_engineering"]):
+        "Platform engineering / developer-tools SWE",
+    frozenset(["cybersecurity", "software_engineering"]):
+        "Security engineering / appsec",
 }
 
 
