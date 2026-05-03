@@ -6,6 +6,10 @@ from .profiles import (
     consulting_candidate,
     conflicted_candidate,
     early_career_candidate,
+    cybersecurity_candidate,
+    founder_candidate,
+    quant_candidate,
+    designer_candidate,
 )
 
 __all__ = [
@@ -15,4 +19,8 @@ __all__ = [
     "consulting_candidate",
     "conflicted_candidate",
     "early_career_candidate",
+    "cybersecurity_candidate",
+    "founder_candidate",
+    "quant_candidate",
+    "designer_candidate",
 ]
