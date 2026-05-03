@@ -22,6 +22,7 @@ specific profile attributes. There is no black box.
    - **head-to-head** comparison: which factors push #1 above #2
    - **counterfactuals**: minimal profile changes that would flip the ranking
    - **tradeoffs**: rules that simultaneously favor one career and penalize another
+   - **heat map**: qualitative GREEN / YELLOW / RED confidence band per career
    - **alternatives**: hybrid roles, dark-horse options, weak-match warnings
 
 ## Why this counts as automated decision-making

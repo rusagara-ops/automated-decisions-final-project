@@ -16,6 +16,7 @@ import unittest
 from advisor import (
     CAREERS, RULES, UserProfile, score,
     explain_top, head_to_head, counterfactuals, detect_tradeoffs, alternatives,
+    heat_map, confidence_band,
 )
 from advisor.scoring import ranked, fire_rules
 from sample_profiles import (
@@ -304,6 +305,55 @@ class TestAlternatives(unittest.TestCase):
         scores, firings = score(profile)
         out = alternatives(profile, scores, firings)
         self.assertIn("CLOSE CALL", out)
+
+
+# --------------------------------------------------------------------------
+# Confidence bands (heat map)
+# --------------------------------------------------------------------------
+
+class TestConfidenceBands(unittest.TestCase):
+    """The qualitative GREEN/YELLOW/RED layer should map scores to bands
+    monotonically and produce sensible heat maps for each profile."""
+
+    def test_band_thresholds_monotone(self):
+        self.assertEqual(confidence_band(15.0), "GREEN")
+        self.assertEqual(confidence_band(10.0), "GREEN")
+        self.assertEqual(confidence_band(9.99), "YELLOW")
+        self.assertEqual(confidence_band(5.0), "YELLOW")
+        self.assertEqual(confidence_band(4.99), "RED")
+        self.assertEqual(confidence_band(0.0), "RED")
+        self.assertEqual(confidence_band(-3.0), "RED")
+
+    def test_strong_profile_has_at_least_one_green(self):
+        """A well-defined profile should produce at least one GREEN career."""
+        for fn in [swe_candidate, research_candidate, consulting_candidate,
+                   conflicted_candidate]:
+            profile = fn()
+            scores, _ = score(profile)
+            bands = {confidence_band(s) for s in scores.values()}
+            self.assertIn(
+                "GREEN", bands,
+                f"{profile.name} should have at least one GREEN career; got bands {bands}",
+            )
+
+    def test_weak_profile_has_no_greens(self):
+        """The early-career profile should not have any GREEN careers — the
+        heat map's job here is to convey 'not enough signal anywhere yet'."""
+        profile = early_career_candidate()
+        scores, _ = score(profile)
+        bands = {confidence_band(s) for s in scores.values()}
+        self.assertNotIn("GREEN", bands)
+
+    def test_heat_map_renders_all_three_bands(self):
+        """The rendered heat map should always show all three band sections,
+        even when a band is empty — that empties-as-information property is
+        what makes it a useful qualitative summary."""
+        profile = early_career_candidate()
+        scores, _ = score(profile)
+        out = heat_map(scores)
+        self.assertIn("GREEN", out)
+        self.assertIn("YELLOW", out)
+        self.assertIn("RED", out)
 
 
 # --------------------------------------------------------------------------

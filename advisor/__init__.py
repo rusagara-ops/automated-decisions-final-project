@@ -2,7 +2,10 @@ from .profile import UserProfile
 from .careers import CAREERS, Career
 from .rules import RULES, Rule, Match, RuleFiring
 from .scoring import score, fire_rules
-from .explanation import explain_top, head_to_head, counterfactuals, detect_tradeoffs
+from .explanation import (
+    explain_top, head_to_head, counterfactuals, detect_tradeoffs,
+    heat_map, confidence_band,
+)
 from .alternatives import alternatives
 
 __all__ = [
@@ -19,5 +22,7 @@ __all__ = [
     "head_to_head",
     "counterfactuals",
     "detect_tradeoffs",
+    "heat_map",
+    "confidence_band",
     "alternatives",
 ]

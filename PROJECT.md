@@ -32,12 +32,13 @@ the system:
    engineering, data science, ML engineering, product management, UX design,
    consulting, quantitative finance, industry research, academic research,
    DevOps/SRE, cybersecurity, entrepreneurship, technical program management).
-3. Outputs a ranked recommendation accompanied by **five explanation
+3. Outputs a ranked recommendation accompanied by **six explanation
    surfaces**:
    - **Top reasons** — the highest-impact positive and negative factors per career
    - **Head-to-head** — what differentiates the #1 from #2
    - **Counterfactuals** — minimal profile changes that would flip the recommendation
    - **Tradeoffs** — rules that simultaneously favor one career and penalize another
+   - **Heat map** — qualitative GREEN/YELLOW/RED confidence band per career
    - **Alternatives** — hybrid roles, dark-horse options, weak-match warnings
 
 ## 3. How this satisfies the course requirements
@@ -47,9 +48,9 @@ automated decision system should have. Each one is addressed below.
 
 ### 3.1 "Use one of the techniques discussed in the course"
 
-The system uses **two** of the suggested techniques:
+The system uses **three** of the suggested techniques from the project handout:
 
-- **Rule-based reasoning** (handout: "Build a rule base expert system").
+- **Rule-based reasoning** (handout: *"Build a rule base expert system"*).
   Forty-six skill/interest/style/goal/experience/constraint rules and
   eighteen extended/compound rules, each with a typed condition and a
   weighted-effect dict. A small DSL (`any_skill`, `all_skills`,
@@ -57,13 +58,26 @@ The system uses **two** of the suggested techniques:
   `has_experience_in`, `goal_mentions`, `either`) keeps rule definitions
   declarative and easy to inspect.
 
-- **Option generation** (handout: "Option generation: if a or b, why not
-  c?"). When the top two careers fall within `close_threshold` of each
+- **Option generation** (handout: *"Option generation: if a or b, why not
+  c?"*). When the top two careers fall within `close_threshold` of each
   other, the system surfaces a curated **hybrid role** for the pair (e.g.
   SWE + DS → "ML Engineering"; SWE + PM → "Technical Product Manager"). It
   also flags **dark-horse careers** (high positive evidence held back by
   penalties) and **weak-match warnings** when even the top option scores
   below `weak_threshold`.
+
+- **Qualitative arithmetic / heat-map summary** (handout: *"Qualitative
+  arithmetic — when is a number a 'good number' or a 'bad number'?"* and
+  the equity-portfolio example: *"summary heat map analysis (Green,
+  Yellow, Red) indicating the risk level of the portfolio"*). The
+  numeric per-career score is collapsed into a **GREEN / YELLOW / RED**
+  confidence band via thresholds calibrated against the sample profiles
+  (GREEN ≥ 10, YELLOW ≥ 5, RED < 5). Every recommendation in
+  `explain_top` is annotated inline with its band, and `heat_map(scores)`
+  renders the full picture: which careers are GREEN, which are YELLOW,
+  which are RED. An all-RED heat map is the system saying *"the profile
+  doesn't yet give enough signal for any of these careers"* — a single
+  qualitative summary that the numeric scores alone do not convey.
 
 ### 3.2 "The program's ability to explain its decision is a grading criterion"
 

@@ -1,11 +1,15 @@
 """
 Explanation engine. Turns the rule-firing trace into human-readable output.
 
-Four explanation modes:
+Five explanation modes:
   - explain_top: top positive and negative factors per career
   - head_to_head: which factors push #1 above #2 (or any A vs B)
   - counterfactuals: minimal profile changes that would flip the ranking
   - detect_tradeoffs: rules that boost one career while hurting another
+  - heat_map: qualitative GREEN/YELLOW/RED confidence band per career
+    (qualitative arithmetic over the numeric scores — directly inspired by
+    the equity-portfolio risk-management heat-map example in the project
+    handout)
 """
 from copy import deepcopy
 from typing import Dict, List, Tuple
@@ -14,6 +18,53 @@ from .careers import CAREERS, career_name
 from .profile import UserProfile
 from .rules import RULES, RuleFiring
 from .scoring import ranked, score
+
+
+# --------------------------------------------------------------------------
+# Qualitative confidence bands (the "heat map")
+# --------------------------------------------------------------------------
+
+GREEN_THRESHOLD = 10.0
+YELLOW_THRESHOLD = 5.0
+
+BAND_LABEL = {
+    "GREEN": "GREEN  (strong fit, well-supported by multiple rules)",
+    "YELLOW": "YELLOW (moderate fit, some support but mixed signal)",
+    "RED": "RED    (weak fit, profile lacks signal for this path)",
+}
+
+
+def confidence_band(score_value: float) -> str:
+    """Map a numeric career score to a qualitative confidence band.
+
+    The thresholds (GREEN >= 10, YELLOW >= 5, RED < 5) are calibrated against
+    the sample profiles: a strong-fit career typically accumulates 10+ points
+    of evidence across multiple rules, while a weak-signal profile struggles
+    to clear 5 points anywhere. Adjusting the thresholds is a single-line
+    change at the top of this module.
+    """
+    if score_value >= GREEN_THRESHOLD:
+        return "GREEN"
+    if score_value >= YELLOW_THRESHOLD:
+        return "YELLOW"
+    return "RED"
+
+
+def heat_map(scores: Dict[str, float]) -> str:
+    """Render the full heat map: every career grouped by confidence band."""
+    bands: Dict[str, List[Tuple[str, float]]] = {"GREEN": [], "YELLOW": [], "RED": []}
+    for career_id, sc in ranked(scores):
+        bands[confidence_band(sc)].append((career_id, sc))
+
+    lines = ["=" * 70, "CONFIDENCE HEAT MAP", "=" * 70]
+    for band in ("GREEN", "YELLOW", "RED"):
+        lines.append(f"\n  {BAND_LABEL[band]}")
+        if not bands[band]:
+            lines.append("    (none)")
+            continue
+        for career_id, sc in bands[band]:
+            lines.append(f"    - {career_name(career_id):<35}  {sc:+6.2f}")
+    return "\n".join(lines)
 
 
 # --------------------------------------------------------------------------
@@ -27,11 +78,19 @@ def explain_top(
     reasons_per_career: int = 5,
     show_negatives: int = 3,
 ) -> str:
-    """Return a human-readable explanation of the top N recommendations."""
+    """Return a human-readable explanation of the top N recommendations.
+
+    Each career header is annotated with its confidence band ([GREEN] /
+    [YELLOW] / [RED]) so the qualitative meaning of the score is visible
+    inline without reading a separate heat map.
+    """
     lines = ["=" * 70, "TOP RECOMMENDATIONS", "=" * 70]
     top = ranked(scores)[:top_n]
     for rank, (career_id, total) in enumerate(top, 1):
-        lines.append(f"\n#{rank}  {career_name(career_id)}   (score: {total:+.2f})")
+        band = confidence_band(total)
+        lines.append(
+            f"\n#{rank}  {career_name(career_id)}  [{band}]   (score: {total:+.2f})"
+        )
         relevant = [f for f in firings if career_id in f.contributions
                     and abs(f.contributions[career_id]) > 0.001]
         positives = sorted(
