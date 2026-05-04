@@ -104,10 +104,18 @@ fact.
 
 ### 3.3 "Your project should run in the zoo"
 
-The core engine (`advisor/`) uses **only the Python standard library**, so
-`import advisor` works on the zoo with no setup. The notebook walkthrough
-requires `jupyter`, which is part of the zoo's standard environment. No
-custom libraries needed clearance from the TF.
+The core engine (`advisor/`) and the **interactive command-line interface**
+(`python -m advisor`) use **only the Python standard library**, so the
+system runs on the zoo with no setup. The notebook walkthrough additionally
+requires `jupyter` and `ipywidgets`, both standard in the zoo's Jupyter
+environment. No custom libraries needed clearance from the TF.
+
+The CLI is the system's primary live-demo entry point — it walks the user
+through inputs in five small chunks (technical skills, non-technical skills,
+interests, work style, constraints, goals), then runs the full pipeline.
+This lets a grader test the system with their own profile in under a minute,
+which is the most direct demonstration that the project is genuinely an
+automated *decision* system rather than a static notebook.
 
 ### 3.4 "Include a write-up explaining your project, including how to run it"
 

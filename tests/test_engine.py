@@ -357,6 +357,52 @@ class TestConfidenceBands(unittest.TestCase):
 
 
 # --------------------------------------------------------------------------
+# CLI smoke tests
+# --------------------------------------------------------------------------
+
+class TestCLI(unittest.TestCase):
+    """End-to-end smoke tests for the python -m advisor CLI."""
+
+    def test_list_mode_lists_all_presets(self):
+        from advisor.__main__ import main
+        import io
+        import contextlib
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = main(["--list"])
+        self.assertEqual(rc, 0)
+        out = buf.getvalue()
+        # Every preset name should appear in the output.
+        for preset_name in PROFILES:
+            self.assertIn(preset_name, out)
+
+    def test_preset_mode_runs_full_pipeline(self):
+        """A preset run must produce all six explanation surfaces."""
+        from advisor.__main__ import main
+        import io
+        import contextlib
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = main(["--preset", "research"])
+        self.assertEqual(rc, 0)
+        out = buf.getvalue()
+        self.assertIn("TOP RECOMMENDATIONS", out)
+        self.assertIn("CONFIDENCE HEAT MAP", out)
+        self.assertIn("ALTERNATIVE OPTIONS", out)
+        self.assertIn("HEAD-TO-HEAD", out)
+        self.assertIn("COUNTERFACTUAL", out)
+
+    def test_unknown_preset_returns_error_code(self):
+        from advisor.__main__ import main
+        import io
+        import contextlib
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = main(["--preset", "nonexistent"])
+        self.assertEqual(rc, 1)
+
+
+# --------------------------------------------------------------------------
 # Score reproducibility
 # --------------------------------------------------------------------------
 

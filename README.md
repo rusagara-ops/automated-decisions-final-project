@@ -41,35 +41,52 @@ comparison, and tradeoff detection on top of that.
 
 ## How to run
 
-### In Jupyter (preferred — matches professor's preference)
+### Interactive CLI — the live demo (recommended for graders)
+
+The CLI is the fastest way to see this work as a real automated decision
+system. It walks you through prompts, then prints the full recommendation
+with explanations, heat map, head-to-head, alternatives, and counterfactuals.
 
 ```bash
-pip install jupyter
+python -m advisor                 # interactive — prompts for your inputs
+python -m advisor --preset swe    # run a preset sample profile
+python -m advisor --list          # list all 9 preset profiles
+```
+
+No Jupyter required. Pure stdlib. Runs on the Zoo as-is.
+
+### In Jupyter (matches the professor's preference)
+
+```bash
+pip install jupyter ipywidgets
 jupyter notebook career_advisor.ipynb
 ```
 
-The notebook walks through five sample profiles and a custom-input cell.
-Outputs are pre-rendered so it can also be read top-to-bottom without
-running.
+The notebook walks through nine sample profiles, a rule-base introspection
+section, the heat map, and an **interactive `ipywidgets` form** where you
+drag sliders + click multi-selects + hit a button to get live recommendations.
+Outputs are pre-rendered so it can also be read top-to-bottom without running.
 
 ### From a Python REPL or script
 
 ```python
-from advisor import score, explain_top, alternatives, counterfactuals
+from advisor import score, explain_top, alternatives, counterfactuals, heat_map
 from sample_profiles import swe_candidate
 
 profile = swe_candidate()
 scores, firings = score(profile)
 print(explain_top(scores, firings, top_n=3))
+print(heat_map(scores))
 print(alternatives(profile, scores, firings))
 print(counterfactuals(profile, scores))
 ```
 
 ### Zoo compatibility
 
-The core engine uses only the Python standard library, so `import advisor`
-works on the zoo with no setup. The notebook walkthrough requires `jupyter`,
-which is already available in the zoo's standard environment.
+The CLI and the core engine use only the Python standard library, so
+`python -m advisor` works on the Zoo with no setup. The notebook walkthrough
+requires `jupyter` and `ipywidgets`, both standard in the Zoo's Jupyter
+environment.
 
 ## Project layout
 
