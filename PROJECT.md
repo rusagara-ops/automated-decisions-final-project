@@ -145,29 +145,6 @@ Three concrete demonstrations from the sample profiles:
   surfaces, alternative-engine triggers, counterfactual robustness,
   heat-map band thresholds, score reproducibility, and CLI smoke tests.
 
-## Limitations
-
-- **Rule weights are hand-set.** Could be fit from user-feedback data,
-  but doing so without losing explainability would need a constrained
-  learner like monotone GBMs.
-- **Goal matching is keyword-based.** Goals are matched against literal
-  substrings — e.g., `goal_high_salary` looks for "high salary",
-  "high pay", "compensation", "high comp". A user who writes *"financial
-  freedom"* won't trigger it. I noticed this when I ran the CLI on my
-  own profile: my goals *"financial freedom"* and *"job security"* fired
-  zero goal-rules, silently weakening the recommendation. Fixing this
-  without losing explainability would mean expanding the keyword lists
-  or layering a small intent-classifier on top — both straightforward
-  but out of scope for a one-week build.
-- **No cross-temporal reasoning.** The system makes a single point-in-time
-  recommendation; it doesn't model how the user's profile evolves.
-- **Career catalog is fixed at 13 paths.** Adding a new career means
-  going through existing rules and adding new entries to their effects
-  dicts.
-- **Profile is structured input.** Real users would type free text — the
-  project doesn't include an NLP layer to parse free text into a
-  `UserProfile`. The goal-keyword limitation above is one consequence.
-
 ## Files
 
 ```
