@@ -1,280 +1,192 @@
-# Project Write-Up — Explainable Career Decision Support System
+# Project Write-Up
 
-**Course:** CS 4580/5580 — Automated Decision Systems
-**Author:** Kevin Rusagara Iraguha
-**Project type:** Individual
+**Career Decision Support System**
+CS 4580/5580 Final Project — Kevin Rusagara Iraguha (individual project)
 
 ---
 
-## 1. Problem statement
+## What it is
 
-Choosing a career path is a high-stakes decision driven by many interacting
-factors: skills, interests, prior experience, work-style preferences,
-short-term and long-term goals, and practical constraints (visa status,
-location, credentials). Most career-advice tools either reduce this to a
-keyword-matching quiz, or — increasingly — feed the same inputs into an
-opaque ML classifier and surface a recommendation with no reasoning.
+A program that recommends careers from a user's profile and explains why.
+The user enters their technical skills, non-technical skills, interests,
+work-style preferences, goals, constraints, and prior experience. The
+system runs them against a hand-authored rule base of 64 rules covering
+13 career paths, then produces a ranked recommendation with full
+explanations.
 
-This project builds a structured automated decision system for the same
-problem, with one defining property: **every recommendation it makes can be
-fully explained**, traced back through specific rules to the specific
-profile attributes that triggered them. There is no black box.
+The point isn't the recommendation — recommenders are easy. The point is
+that **every score is fully traceable**. You can ask "why did you put PM
+above consulting?" and the system answers in concrete terms: "PM gets
++1.5 from your interest in users; consulting gets +3.0 from your interest
+in strategy but loses -2.0 because of your no_relocation constraint;
+their delta is +1.5 in PM's favor."
 
-## 2. What the system does
+## How to run it
 
-Given a `UserProfile` (technical skills 0–5, non-technical skills 0–5,
-interests, work experience, work-style preferences, goals, and constraints),
-the system:
+The fastest way to see it work:
 
-1. Runs a hand-authored rule base of **64 rules** spanning skills, interests,
-   work styles, goals, experience, and constraints.
-2. Aggregates per-career scores across **13 career paths** (software
-   engineering, data science, ML engineering, product management, UX design,
-   consulting, quantitative finance, industry research, academic research,
-   DevOps/SRE, cybersecurity, entrepreneurship, technical program management).
-3. Outputs a ranked recommendation accompanied by **six explanation
-   surfaces**:
-   - **Top reasons** — the highest-impact positive and negative factors per career
-   - **Head-to-head** — what differentiates the #1 from #2
-   - **Counterfactuals** — minimal profile changes that would flip the recommendation
-   - **Tradeoffs** — rules that simultaneously favor one career and penalize another
-   - **Heat map** — qualitative GREEN/YELLOW/RED confidence band per career
-   - **Alternatives** — hybrid roles, dark-horse options, weak-match warnings
-
-## 3. How this satisfies the course requirements
-
-The course syllabus and project handout call out specific properties an
-automated decision system should have. Each one is addressed below.
-
-### 3.1 "Use one of the techniques discussed in the course"
-
-The system uses **three** of the suggested techniques from the project handout:
-
-- **Rule-based reasoning** (handout: *"Build a rule base expert system"*).
-  Forty-six skill/interest/style/goal/experience/constraint rules and
-  eighteen extended/compound rules, each with a typed condition and a
-  weighted-effect dict. A small DSL (`any_skill`, `all_skills`,
-  `lacks_skill`, `has_interest`, `has_work_style`, `has_constraint`,
-  `has_experience_in`, `goal_mentions`, `either`) keeps rule definitions
-  declarative and easy to inspect.
-
-- **Option generation** (handout: *"Option generation: if a or b, why not
-  c?"*). When the top two careers fall within `close_threshold` of each
-  other, the system surfaces a curated **hybrid role** for the pair (e.g.
-  SWE + DS → "ML Engineering"; SWE + PM → "Technical Product Manager"). It
-  also flags **dark-horse careers** (high positive evidence held back by
-  penalties) and **weak-match warnings** when even the top option scores
-  below `weak_threshold`.
-
-- **Qualitative arithmetic / heat-map summary** (handout: *"Qualitative
-  arithmetic — when is a number a 'good number' or a 'bad number'?"* and
-  the equity-portfolio example: *"summary heat map analysis (Green,
-  Yellow, Red) indicating the risk level of the portfolio"*). The
-  numeric per-career score is collapsed into a **GREEN / YELLOW / RED**
-  confidence band via thresholds calibrated against the sample profiles
-  (GREEN ≥ 10, YELLOW ≥ 5, RED < 5). Every recommendation in
-  `explain_top` is annotated inline with its band, and `heat_map(scores)`
-  renders the full picture: which careers are GREEN, which are YELLOW,
-  which are RED. An all-RED heat map is the system saying *"the profile
-  doesn't yet give enough signal for any of these careers"* — a single
-  qualitative summary that the numeric scores alone do not convey.
-
-### 3.2 "The program's ability to explain its decision is a grading criterion"
-
-This is the central design goal of the project. Each rule firing produces a
-structured `RuleFiring` record containing the rule, a `Match` object with
-`evidence` (human-readable strings naming the exact profile attributes
-that triggered the rule), and per-career contributions. The explanation
-engine reads this trace and produces:
-
-- `explain_top(...)`: positive and negative factors per career, sorted by
-  contribution magnitude, each annotated with the underlying evidence.
-- `head_to_head(a, b, firings)`: subtracts contributions and surfaces the
-  rules that most strongly differentiate two careers.
-- `counterfactuals(profile, scores)`: searches the space of single-attribute
-  perturbations (boosting one skill at a time, removing one constraint at
-  a time) and reports any change that would shift the top recommendation.
-- `detect_tradeoffs(firings)`: identifies rules with simultaneous positive
-  and negative effects.
-
-This contrasts directly with neural-network classifiers, which can only be
-made interpretable through *post-hoc* methods like LIME or SHAP. Here the
-explanation **is** the model — there is nothing to approximate after the
-fact.
-
-### 3.3 "Your project should run in the zoo"
-
-The core engine (`advisor/`) and the **interactive command-line interface**
-(`python -m advisor`) use **only the Python standard library**, so the
-system runs on the zoo with no setup. The notebook walkthrough additionally
-requires `jupyter` and `ipywidgets`, both standard in the zoo's Jupyter
-environment. No custom libraries needed clearance from the TF.
-
-The CLI is the system's primary live-demo entry point — it walks the user
-through inputs in five small chunks (technical skills, non-technical skills,
-interests, work style, constraints, goals), then runs the full pipeline.
-This lets a grader test the system with their own profile in under a minute,
-which is the most direct demonstration that the project is genuinely an
-automated *decision* system rather than a static notebook.
-
-### 3.4 "Include a write-up explaining your project, including how to run it"
-
-This file plus `README.md` cover the write-up. The `career_advisor.ipynb`
-notebook is fully executed with output baked in so a grader can read it
-top-to-bottom without running anything.
-
-## 4. What is interesting / important about it
-
-Three things make this project worth submitting beyond "a thing that
-returns a ranked list."
-
-### 4.1 The constraint-flips-the-recommendation case
-
-The `consulting_candidate` sample has strong communication skills, a stated
-goal of consulting, **and** a `no_relocation` constraint. The system ranks
-**Product Management above Consulting** because the relocation constraint
-penalizes consulting, where jobs cluster in a few major cities. Counterfactual
-analysis then says: *if you removed the no_relocation constraint, the
-recommendation would shift back to consulting.* This is the kind of insight
-a black-box recommender would hide — the user gets the full picture and
-can decide for themselves whether to relax the constraint.
-
-### 4.2 The compound-rule case
-
-Compound rules like `ml_plus_systems` (fires only when the user has both
-machine learning ≥ 3 *and* system design ≥ 3) recognize career fits that
-single-attribute matching would miss. For the `swe_candidate` profile
-(strong SWE skills + ML basics + systems depth + "start a company" goal),
-the system surfaces **ML Engineering** as the top recommendation —
-correctly identifying a synthesis that an attribute-by-attribute scorer
-would miss. The decision trace then shows exactly which compound rules
-fired and why.
-
-### 4.3 The weak-match honesty case
-
-The `early_career_candidate` profile is intentionally underspecified:
-beginner Python, one interest, one constraint, no experience. Rather than
-recommending the highest-scoring career as if it were a confident pick, the
-system flags this with a **`WEAK MATCH` warning**: *"even the top option
-scores only +2.00 — the profile may need more skill or experience signal
-before any of these careers becomes a strong fit."* Counterfactual analysis
-then doubles as **career guidance**: it lists the specific skills that, if
-developed, would most change the picture.
-
-## 5. How the system explains its decisions (deep dive)
-
-### 5.1 Data structures
-
-```python
-@dataclass
-class Match:
-    strength: float          # 0..1 — scales the rule's effects
-    evidence: list[str]      # human-readable triggers (e.g. "python: 5/5")
-
-@dataclass
-class Rule:
-    id: str
-    description: str         # surfaced verbatim in explanations
-    condition: Callable      # Profile -> Optional[Match]
-    effects: dict[str, float]  # career_id -> base weight
-
-@dataclass
-class RuleFiring:
-    rule: Rule
-    match: Match
-    contributions: dict[str, float]  # career_id -> weight * strength
+```bash
+python3 -m advisor                  # interactive — prompts for your inputs
+python3 -m advisor --preset swe     # run a sample profile
+python3 -m advisor --list           # list 9 sample profiles
 ```
 
-Every score is the sum of some `RuleFiring.contributions`. Every contribution
-points back to a `Rule` (with description) and a `Match.evidence` list
-(with the triggering attributes). There is no path from a number on screen
-to a black box — every step is named, typed, and inspectable.
+For the full notebook walkthrough (sample profiles + interactive ipywidgets form):
 
-### 5.2 Counterfactual generation
+```bash
+jupyter notebook career_advisor.ipynb
+```
 
-Counterfactuals are computed by **search**, not by gradient: the engine
-tries individually boosting each of ten "common" skills to level 4 and
-removing each constraint, re-scores under each perturbation, and reports
-any case where the top-1 recommendation changes. Because scoring runs in
-sub-millisecond time, brute-force search is fast enough that no
-approximation is needed.
+CLI and engine use only the Python standard library, so the Zoo runs it
+with no setup. The notebook needs `jupyter` and `ipywidgets`, both
+standard in the Zoo's Jupyter environment.
 
-The output naturally serves two distinct purposes depending on the
-profile:
+## Techniques used
 
-- For strong, well-supported profiles (e.g. `research_candidate`), the
-  engine reports that **no small change would flip the recommendation** —
-  this is a robustness signal.
-- For weak or borderline profiles, the engine lists the specific
-  perturbations that would change the answer — these double as
-  actionable advice.
+The project handout listed several suggested techniques. I used three of
+them:
 
-### 5.3 Head-to-head comparison
+1. **Rule-based expert system** ("Build a rule base expert system" in the
+   handout). 64 rules grouped into 7 categories: skills, interests, work
+   style, experience, goals, constraints, and compound rules. Each rule
+   declares a condition (a callable that inspects the profile) and a
+   weighted-effect dict (which careers it pushes up or down, by how
+   much). A small DSL — `any_skill`, `all_skills`, `lacks_skill`,
+   `has_interest`, `has_work_style`, `has_constraint`, `has_experience_in`,
+   `goal_mentions`, `either` — keeps the rule definitions readable.
+2. **Option generation** ("Option generation: if a or b, why not c?"
+   in the handout). When the top two careers are within `close_threshold`
+   of each other, the system surfaces a curated **hybrid role** for the
+   pair — e.g., SWE + Data Science → "ML Engineering"; SWE + PM → "Technical
+   Product Manager". It also flags **dark-horse careers** (high positive
+   evidence held back by penalties) and prints a **weak-match warning**
+   when even the top option scores below `weak_threshold`.
+3. **Qualitative arithmetic / heat-map summary** ("Qualitative arithmetic
+   — when is a number a 'good number' or a 'bad number'?" and the equity-
+   portfolio example *"summary heat map analysis (Green, Yellow, Red)"*).
+   I collapse each numeric career score into a **GREEN / YELLOW / RED**
+   confidence band — GREEN ≥ 10, YELLOW ≥ 5, RED < 5 — and annotate every
+   recommendation in `explain_top` inline with its band. The full
+   `heat_map(scores)` view groups all 13 careers by band. An all-RED
+   heat map is the system saying *"your profile doesn't yet give enough
+   signal for any of these careers"* — a single qualitative summary the
+   raw numbers don't communicate.
 
-Subtracting contribution dicts isolates *only* the rules that distinguish
-two careers. A rule that boosts both SWE and PM equally drops out; a rule
-that boosts SWE +3 and PM 0 surfaces with a delta of +3 favoring SWE.
-The result is a sorted, signed list of distinguishing factors — usually
-3–8 items, easy to read.
+## How decisions are explained
 
-## 6. Implementation notes
+Every score the system produces can be traced back step by step:
 
-- **Language:** pure Python (3.x). The core engine has zero non-stdlib
-  dependencies; the notebook needs only `jupyter`.
-- **Layout:** see `README.md` for the file tree.
-- **Tests:** `tests/test_engine.py` (20 tests, runs in <10 ms with
-  `python -m unittest tests.test_engine`). Covers structural invariants
-  (no rules with impossible conditions, ≥45% sample-profile coverage),
-  per-profile sanity rankings, all four explanation modes producing
-  non-trivial output, alternative-engine triggers, counterfactual
-  robustness, and score reproducibility.
-- **Rule base:** 64 rules, organized into seven thematic blocks
-  (skill-driven, interest-driven, work-style, experience, goal-driven,
-  constraint-driven, and extended/compound). Each rule has a unique ID
-  and a human-readable description that is surfaced verbatim in
-  explanations.
-- **Sample profiles:** five profiles in `sample_profiles/profiles.py`,
-  each designed to exercise a different decision scenario (clean SWE
-  fit, robust research fit, constraint-driven demotion,
-  skills-vs-preferences conflict, weak-match warning).
+- A **score** is the sum of contributions from all rules that fired.
+- A **contribution** is `rule.effects[career_id] × match.strength`.
+- A **match** records the strength (0..1) and the `evidence` — the
+  human-readable strings naming the exact profile attributes that
+  triggered the rule (e.g., `"python: 5/5"`, `"interest: ai"`,
+  `"goal mentions 'start a company'"`).
+- A **rule** has an ID and a description that's surfaced verbatim in
+  the explanation output.
 
-## 7. Limitations and future work
+There's no opaque weight matrix, no embedding, no learned representation.
+If a user disagrees with a recommendation, they can read the trace and
+identify the specific rule they disagree with — and the system tells
+them what would have to change for the recommendation to flip.
 
-- **Rule weights are hand-set.** With user-feedback data they could be
-  fit empirically — but doing so without losing explainability would
-  require a constrained learner (e.g. monotone GBMs).
-- **Goal matching is keyword-based, not semantic.** Goals are matched by
-  literal substrings — e.g. `goal_high_salary` fires on the keywords
-  `"high salary"`, `"high pay"`, `"compensation"`, `"high comp"`. A user
-  who writes *"financial freedom"* will not trigger this rule, even
-  though the intent is the same. Discovered when testing the system
-  against a real user profile in the live CLI: the user's goals
-  *"financial freedom"* and *"job security"* fired no goal-rules at all,
-  silently weakening the recommendation. Fixing this without losing
-  explainability would mean either expanding the keyword lists or
-  layering a small intent-classifier on top — both straightforward but
-  out of scope for a one-week build.
+The explanation engine has six surfaces:
+
+| Surface | What it answers |
+|---|---|
+| `explain_top` | "Why did you recommend this?" — top positive and negative factors per career |
+| `head_to_head` | "Why this one over that one?" — the rules that distinguish two careers |
+| `counterfactuals` | "What would change your mind?" — minimal profile perturbations that would flip the top recommendation |
+| `detect_tradeoffs` | "What's pulling against itself?" — rules that simultaneously favor one career and penalize another |
+| `heat_map` | "How confident are you?" — qualitative GREEN/YELLOW/RED summary |
+| `alternatives` | "What other options should I consider?" — hybrid roles, dark horses, weak-match warnings |
+
+## What's interesting about it
+
+Three concrete demonstrations from the sample profiles:
+
+1. **Constraint flips the recommendation.** The `consulting_candidate`
+   profile has strong communication, an explicit consulting goal, *and*
+   a `no_relocation` constraint. The system ranks Product Management
+   above Consulting because the constraint penalizes consulting (jobs
+   cluster in major cities). The counterfactual then says: *"If the
+   constraint 'no_relocation' were removed, top recommendation would
+   shift to Management Consulting."* A black-box recommender would hide
+   this — here the user can see the constraint is the only thing
+   blocking their stated preference.
+2. **Compound rules find non-obvious fits.** A compound rule like
+   `ml_plus_systems` fires only when the user has both `machine_learning ≥ 3`
+   and `system_design ≥ 3`. For a profile with strong SWE skills + ML
+   basics + systems depth, this lifts ML Engineering above straight SWE.
+   An attribute-by-attribute scorer would miss the synthesis.
+3. **Honest weak-match warnings.** The `early_career_candidate` profile
+   is intentionally underspecified. The system refuses to fake confidence
+   — it prints a `WEAK MATCH` warning saying *"even the top option scores
+   only +2.00."* All 13 careers land in the RED band of the heat map, and
+   the counterfactuals double as career guidance: here are the specific
+   skills that, if developed, would shift the picture.
+
+## Implementation
+
+- **Language:** Python 3, stdlib only for the engine and CLI. Notebook
+  uses `jupyter` and `ipywidgets`.
+- **Engine:** ~1,000 lines across `advisor/profile.py`,
+  `advisor/careers.py`, `advisor/rules.py`, `advisor/scoring.py`,
+  `advisor/explanation.py`, `advisor/alternatives.py`.
+- **CLI:** `advisor/__main__.py` — interactive prompts plus `--preset` /
+  `--list` flags.
+- **Sample profiles:** 9 profiles in `sample_profiles/profiles.py`,
+  designed to exercise different decision scenarios (clean fits, robust
+  fits, constraint-driven demotions, conflicts, weak signals).
+- **Tests:** `tests/test_engine.py` — 27 tests run by
+  `python3 -m unittest tests.test_engine` in under 10 ms. Cover
+  structural invariants (no rules with impossible conditions, ≥45%
+  sample coverage), per-profile sanity rankings, all six explanation
+  surfaces, alternative-engine triggers, counterfactual robustness,
+  heat-map band thresholds, score reproducibility, and CLI smoke tests.
+
+## Limitations
+
+- **Rule weights are hand-set.** Could be fit from user-feedback data,
+  but doing so without losing explainability would need a constrained
+  learner like monotone GBMs.
+- **Goal matching is keyword-based.** Goals are matched against literal
+  substrings — e.g., `goal_high_salary` looks for "high salary",
+  "high pay", "compensation", "high comp". A user who writes *"financial
+  freedom"* won't trigger it. I noticed this when I ran the CLI on my
+  own profile: my goals *"financial freedom"* and *"job security"* fired
+  zero goal-rules, silently weakening the recommendation. Fixing this
+  without losing explainability would mean expanding the keyword lists
+  or layering a small intent-classifier on top — both straightforward
+  but out of scope for a one-week build.
 - **No cross-temporal reasoning.** The system makes a single point-in-time
-  recommendation; it does not model the user's career trajectory or
-  account for how their profile would evolve.
+  recommendation; it doesn't model how the user's profile evolves.
 - **Career catalog is fixed at 13 paths.** Adding a new career means
-  adding new rule effects to existing rules.
-- **The user profile is structured input.** Real users would type free
-  text; the project does not include a general NLP layer to parse free
-  text into a `UserProfile` — the goal-matching keyword limitation above
-  is one consequence of this.
+  going through existing rules and adding new entries to their effects
+  dicts.
+- **Profile is structured input.** Real users would type free text — the
+  project doesn't include an NLP layer to parse free text into a
+  `UserProfile`. The goal-keyword limitation above is one consequence.
 
-The primary scope choice was depth of explanation over breadth of
-domain. Adding more careers, more rules, semantic goal-matching, or a
-free-text input layer are all straightforward extensions.
+## Files
 
-## 8. Summary
-
-The project implements an explainable career recommendation system with a
-64-rule rule base, five explanation modes, and an option-generation layer.
-It runs on the Zoo using only the Python standard library, ships with a
-20-test suite, and demonstrates three substantive capabilities — surfacing
-hidden constraints, recognizing compound profile patterns, and warning
-honestly about weak-signal inputs — that distinguish it from a
-keyword-matching quiz on one side and a black-box ML classifier on the
-other.
+```
+career_advisor.ipynb        notebook walkthrough (executed, outputs included)
+advisor/
+  __init__.py
+  __main__.py               CLI entry point
+  profile.py                UserProfile dataclass
+  careers.py                13-career catalog
+  rules.py                  64 rules + DSL helpers
+  scoring.py                rule-firing + score aggregation
+  explanation.py            6 explanation modes
+  alternatives.py           option generation
+sample_profiles/
+  profiles.py               9 sample profiles
+tests/
+  test_engine.py            27 tests
+docs/screenshots/           6 screenshots of the notebook
+README.md                   short index
+PROJECT.md                  this write-up
+requirements.txt
+```
