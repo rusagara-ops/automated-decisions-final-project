@@ -129,15 +129,27 @@ The notebook walks through:
 
 ## Screenshots
 
-Screenshots of the live notebook are in [`docs/screenshots/`](docs/screenshots/):
+Screenshots of the notebook running in JupyterLab live in
+[`docs/screenshots/`](docs/screenshots/):
 
-| Screenshot | Shows |
-|---|---|
-| `01_overview.png` | System overview + rule base introspection |
-| `02_swe_decision.png` | SWE candidate's full decision trace (Top reasons + alternatives) |
-| `03_constraint_flip.png` | Consulting candidate where the no_relocation constraint flips the recommendation |
-| `04_widget_form.png` | The interactive ipywidgets form |
-| `05_widget_output.png` | Live output after clicking "Get recommendations" |
+### System overview — 13 careers, 64 rules
+![Overview](docs/screenshots/01_overview.png)
+
+### Rule base introspection — every rule grouped by category
+![Rule base](docs/screenshots/02_rule_base.png)
+
+### SWE candidate — top 3 with `[GREEN]` / `[YELLOW]` band tags inline
+![SWE decision](docs/screenshots/03_swe_decision.png)
+
+### Research candidate — counterfactual reports the recommendation is *robust*
+![Research robust](docs/screenshots/04_research_robust.png)
+
+### Consulting candidate — `no_relocation` constraint flips the recommendation
+![Constraint flip](docs/screenshots/05_constraint_flip.png)
+
+### Confidence heat map — qualitative GREEN/YELLOW/RED summary
+![Heat map](docs/screenshots/06_heat_map.png)
+
 
 ## Sample output (verbatim engine traces)
 
