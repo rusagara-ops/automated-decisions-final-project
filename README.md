@@ -9,6 +9,21 @@ The system's defining property is that **every recommendation is fully
 explainable**: scores trace back to specific rules, and rules trace back to
 specific profile attributes. There is no black box.
 
+## Quick start
+
+Try the live demo right now (no Jupyter, no setup, pure stdlib):
+
+```bash
+python -m advisor                  # interactive — walks you through prompts
+python -m advisor --preset swe     # run a sample profile
+python -m advisor --list           # list all 9 sample profiles
+```
+
+Or open the full notebook walkthrough:
+```bash
+jupyter notebook career_advisor.ipynb
+```
+
 ## What the system does
 
 1. Takes a `UserProfile` containing technical skills, non-technical skills,

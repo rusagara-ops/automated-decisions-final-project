@@ -243,18 +243,30 @@ The result is a sorted, signed list of distinguishing factors — usually
 - **Rule weights are hand-set.** With user-feedback data they could be
   fit empirically — but doing so without losing explainability would
   require a constrained learner (e.g. monotone GBMs).
+- **Goal matching is keyword-based, not semantic.** Goals are matched by
+  literal substrings — e.g. `goal_high_salary` fires on the keywords
+  `"high salary"`, `"high pay"`, `"compensation"`, `"high comp"`. A user
+  who writes *"financial freedom"* will not trigger this rule, even
+  though the intent is the same. Discovered when testing the system
+  against a real user profile in the live CLI: the user's goals
+  *"financial freedom"* and *"job security"* fired no goal-rules at all,
+  silently weakening the recommendation. Fixing this without losing
+  explainability would mean either expanding the keyword lists or
+  layering a small intent-classifier on top — both straightforward but
+  out of scope for a one-week build.
 - **No cross-temporal reasoning.** The system makes a single point-in-time
   recommendation; it does not model the user's career trajectory or
   account for how their profile would evolve.
 - **Career catalog is fixed at 13 paths.** Adding a new career means
   adding new rule effects to existing rules.
 - **The user profile is structured input.** Real users would type free
-  text; the project does not include an NLP layer to parse free text
-  into a `UserProfile`.
+  text; the project does not include a general NLP layer to parse free
+  text into a `UserProfile` — the goal-matching keyword limitation above
+  is one consequence of this.
 
 The primary scope choice was depth of explanation over breadth of
-domain. Adding more careers, more rules, or a free-text input layer are
-all straightforward extensions.
+domain. Adding more careers, more rules, semantic goal-matching, or a
+free-text input layer are all straightforward extensions.
 
 ## 8. Summary
 
